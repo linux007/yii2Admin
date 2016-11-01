@@ -1,0 +1,163 @@
+<?php
+use kartik\grid\GridView;
+use kartik\alert\Alert;
+use kartik\widgets\SwitchInput;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\bootstrap\Modal;
+
+$gridColumns = [
+    ['class' => 'kartik\grid\SerialColumn','width' => '3%'],
+    [
+        'class' => 'kartik\grid\DataColumn',
+        'attribute' => 'username',
+        'width' => '22%',
+        'label' => '用户名',
+    ],
+    [
+        'attribute' => 'email',
+        'label' => '邮箱',
+        'width' => '22%',
+    ],
+    [
+        'attribute' => 'created_at',
+        'format' => ['date', 'php:Y/m/d H:i:s'],
+        'width' => '22%',
+        'label' => '创建时间'
+    ],
+    [
+        'attribute' => 'status',
+        'label' => '状态',
+        'content' => function ($model, $key, $index, $column) {
+            return SwitchInput::widget([
+                'name' => 'status',
+                'value' => $model['status'],
+                'pluginEvents' => [
+                    "switchChange.bootstrapSwitch" => "function(event, state) { $.ajax({
+                        url: '".Url::toRoute('status-change')."',
+                        type: 'post',
+                        data: {id: ".$model['id'].", status: state},
+                        success: function(data) {
+                            console.log(data);
+                        }
+                    }) }",
+                ],
+            ]);
+        },
+        'filterType' => GridView::FILTER_SELECT2,
+        'filter' =>[1 => 'active', 0 => 'inactive'],
+        'filterInputOptions'=>['placeholder'=>'Any status'],
+        'filterWidgetOptions'=>[
+            'pluginOptions'=>['allowClear'=>true],
+        ],
+//        'attribute' => 'status',
+        'width' => '10%',
+    ],
+    [
+        'class' => 'kartik\grid\ActionColumn',
+        'header' => '操作',
+        'template' => '{update}',
+        'buttons' => [
+            'update' => function ($url, $model, $key) {
+                return Html::a('修改', null, ['class' => 'btn btn-primary btn-sm', 'data-key' => $key, 'id' => 'edit_btn','data-toggle' => 'modal', 'data-target' => '#edit-modal'] );
+            },
+        ],
+//        'deleteOptions' => ['label' => '<i class="glyphicon icon-white">删除</i>', 'class'=>'btn btn-danger btn-sm margin'],
+    ],
+];
+?>
+
+<?php if (Yii::$app->session->hasFlash('success')): ?>
+<!--<div class="alert alert-success alert-dismissable">
+        <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+        <h4><i class="icon fa fa-check"></i>Saved!</h4>
+    </div> -->
+    <?= Alert::widget([
+        'type' => Alert::TYPE_SUCCESS,
+//        'title' => 'success!',
+//        'icon' => 'glyphicon glyphicon-ok-sign',
+        'body' => Yii::$app->session->getFlash('success'),
+        'showSeparator' => true,
+        'delay' => 3500
+    ]); ?>
+<?php endif; ?>
+
+<section class="content">
+    <div class="row">
+        <?= GridView::widget([
+            'dataProvider' => $dataProvider,
+            'filterModel' => $searchModel,
+            'columns' => $gridColumns,
+            'showPageSummary' => true,
+            'export' => false,
+            'bordered' => true,
+            'striped' => false,
+            'condensed' => false,
+            'responsive' => true,
+            'hover' => true,
+            'showPageSummary' => false,
+            'toolbar' => [
+                ['content'=>
+                     Html::button('<i class="glyphicon glyphicon-plus"></i>', ['type'=>'button', 'title'=>'Add Member', 'data-toggle' => 'modal', 'class'=>'btn btn-success', 'value' => Url::to('/admin/role/create'),
+                                                                               'data-target' => '#member-modal', 'id' => 'create-member'])
+                ],
+                '{toggleData}',
+            ],
+            'panel' => [
+                'type' => GridView::TYPE_ACTIVE
+            ],
+        ]); ?>
+    </div>
+</section>
+
+<!-- member create modal -->
+<?php
+Modal::begin([
+    'id' => 'member-modal',
+    'header' => '<h4 class="modal-title">创建管理员</h4>',
+//    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
+]);
+$requestUrl = Url::toRoute('create');
+$js = <<<JS
+$(document).on('click', '#create-member', function () {
+    $.ajax({
+        url: '{$requestUrl}',
+        type: 'get',
+        success: function(data) {
+            $('#member-modal .modal-body').html(data);
+        },
+        error: function() {
+            console.log('异常');
+        }
+    });
+});
+JS;
+$this->registerJs($js);
+Modal::end();
+?>
+
+<!-- member edit modal -->
+<?php
+Modal::begin([
+    'id' => 'edit-modal',
+    'header' => '<h4 class="modal-title">修改用户信息</h4>',
+//    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
+]);
+$requestUrl = Url::toRoute('edit');
+$js = <<<JS
+$(document).on('click', '#edit_btn', function () {
+    $.ajax({
+        url: '{$requestUrl}?id='+$(this).attr('data-key'),
+        type: 'get',
+        success: function(data) {
+            $('#edit-modal .modal-body').html(data);
+        },
+        error: function() {
+            console.log('异常');
+        }
+    });
+});
+JS;
+$this->registerJs($js);
+Modal::end();
+?>

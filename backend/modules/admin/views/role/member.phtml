@@ -1,0 +1,105 @@
+<?php
+use kartik\grid\GridView;
+use \yii\helpers\Html;
+use yii\helpers\Url;
+
+$gridColumns = [
+    [
+        'class' => 'kartik\grid\CheckboxColumn',
+        'name' => 'id',
+        'checkboxOptions' => function ($model, $key, $index, $column) {
+            return  ['checked' => $model['checked']];
+        }
+    ],
+    [
+        'class' => 'kartik\grid\DataColumn',
+        'attribute' => 'username',
+        'label' => '用户名',
+    ],
+    [
+        'attribute' => 'email',
+        'label' => '邮箱',
+    ],
+];
+?>
+<!-- 警告提示 -->
+<div id="alert-warning" class="alert alert-warning hidden">
+    <a href="#" class="close" data-dismiss="alert">&times;</a>
+    <strong>警告！</strong>
+    <span>Indicates a dangerous or potentially negative action.</span>
+</div>
+<!-- 错误提示 -->
+<div id="alert-error" class="alert alert-danger hidden">
+    <strong>500</strong>
+    <span>Indicates a dangerous or potentially negative action.</span>
+</div>
+
+<section class="content">
+    <div class="row">
+        <?= GridView::widget([
+            'dataProvider' => $dataProvider,
+            'filterModel' => $searchModel,
+            'columns' => $gridColumns,
+            'showPageSummary' => false,
+            'options' => [
+                'id' => 'members',
+            ],
+//            'pjax' => true,
+//            'pjaxSettings'=>[
+//                'options'=>[
+//                    'enablePushState'=>false,
+//                ],
+//            ],
+            'export' => false,
+            'bordered' => true,
+            'striped' => true,
+            'condensed' => false,
+            'responsive' => false,
+            'hover' => true,
+            'showPageSummary' => false,
+            'toolbar' => false,
+//            'showFooter' => true,
+            'panel'=>[
+//                'type'=>GridView::TYPE_DEFAULT,
+                'heading'=> false,
+                'footer' => Html::button('提交', ['class' => 'btn btn-primary', 'id' => 'assign-member']),
+            ],
+        ]); ?>
+    </div>
+</section>
+
+<?= Html::hiddenInput('assignRole', $assignRole, ['id' => 'assign-role']) ?>
+
+<?php
+$requestUrl = Url::toRoute('/admin/role/do-assign-member');
+$referer = Url::previous('role-index');
+
+$script = <<<JS
+    $('#assign-member').on('click', function() {
+        var keys = $('#members').yiiGridView('getSelectedRows');
+        var roleName = $('#assign-role').val();
+        $.ajax({
+            url: '{$requestUrl}',
+            type: 'POST',
+            dataType: 'JSON',
+            data: {
+                roleName: roleName,
+                memberIds: keys,
+            },
+            success: function(ret) {
+                if (ret.code !== 200) {
+                    $('#alert-' + ret.type+ ' span').html(ret.message);
+                    $('#alert-' + ret.type).removeClass('hidden').fadeIn().animate({opacity: 1.0}, 1500).fadeOut('slow');
+                } else {
+                    location.href = '{$referer}';
+                }
+            },
+            error: function(ret) {
+                $('#alert-error span').html('服务器错误');
+                $('#alert-error').removeClass('hidden').fadeIn().animate({opacity: 1.0}, 1500).fadeOut('slow');
+            }
+        })
+    })
+JS;
+$this->registerJs($script);
+?>

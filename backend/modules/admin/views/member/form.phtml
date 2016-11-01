@@ -1,0 +1,33 @@
+<?php
+use kartik\form\ActiveForm;
+use \yii\helpers\Html;
+use \yii\helpers\Url;
+
+$form = ActiveForm::begin([
+    'action' => Url::to(['/admin/member/' . $action]),
+    'method' => 'post',
+    'id' => 'member-'. $action .'-form',
+    'type' => ActiveForm::TYPE_HORIZONTAL,
+    'fullSpan' => 11,
+    'formConfig' => ['labelSpan' => 2, 'deviceSize' => ActiveForm::SIZE_SMALL],
+    'enableAjaxValidation' => true,
+    'enableClientValidation' => true,
+    'validationUrl' => Url::toRoute(['validate-form?scenarios=' . $action]),
+]);
+?>
+
+<?= $form->field($model, 'username', ['labelOptions' => ['label' => '用户名']])->textInput(['autofocus' => true]); ?>
+<?= $form->field($model, 'email', ['labelOptions' => ['label' => '邮箱']]); ?>
+<?php if ( isset($showPwdInput) && $showPwdInput): ?>
+    <?= $form->field($model, 'password', ['labelOptions' => ['label' => '密码']])->passwordInput() ?>
+    <?= $form->field($model, 'password_repeat', ['labelOptions' => ['label' => '确认密码']])->passwordInput() ?>
+<?php endif; ?>
+<?= $form->field($model, 'id')->hiddenInput()->label(false) ?>
+<div class="form-group">
+    <div class="col-sm-offset-2 col-sm-9">
+        <?= Html::submitButton('提交', ['class' => 'btn btn-primary']) ?>
+        <?= Html::resetButton('重置', ['class' => 'btn btn-default']) ?>
+    </div>
+</div>
+
+<?php  ActiveForm::end(); ?>

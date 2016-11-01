@@ -1,0 +1,69 @@
+<?php
+use kartik\grid\GridView;
+use yii\widgets\Pjax;
+
+$gridColumns = [
+    [
+        'class' => '\kartik\grid\CheckboxColumn',
+        'name' => 'id',
+        'options' => [
+            'id' => 'aaa',
+        ],
+    ],
+    [
+        'class' => 'kartik\grid\DataColumn',
+        'attribute' => 'username',
+        'label' => '用户名',
+    ],
+    [
+        'attribute' => 'email',
+        'label' => '邮箱',
+    ],
+];
+?>
+
+<?php //Pjax::begin(['id' => 'members']) ?>
+<section class="content">
+    <div class="row">
+        <?= GridView::widget([
+            'dataProvider' => $dataProvider,
+            'filterModel' => $searchModel,
+            'columns' => $gridColumns,
+            'showPageSummary' => false,
+            'options' => [
+                'id' => 'members',
+            ],
+//            'pjax' => true,
+//            'pjaxSettings'=>[
+//                'options'=>[
+//                    'enablePushState'=>false,
+//                ],
+//            ],
+            'export' => false,
+            'bordered' => true,
+            'striped' => true,
+            'condensed' => false,
+            'responsive' => false,
+            'hover' => true,
+            'showPageSummary' => false,
+            'toolbar' => false,
+            'panel'=>[
+//                'type'=>GridView::TYPE_DEFAULT,
+                'heading'=> false,
+                'footer' => false,
+            ],
+        ]); ?>
+    </div>
+</section>
+<?php //Pjax::end(); ?>
+
+<?php
+$script = <<<JS
+    $('[name=id_all]').on('click', function() {
+        $('#members').yiiGridView('setSelectionColumn', {"name":"id[]","class":"kv-row-checkbox","multiple":true,"checkAll":"id_all"});
+        console.log(111);
+    })
+JS;
+$this->registerJs($script);
+?>
+

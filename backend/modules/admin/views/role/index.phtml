@@ -1,0 +1,262 @@
+<?php
+use kartik\grid\GridView;
+use yii\helpers\Html;
+use yii\helpers\Url;
+use yii\bootstrap\Modal;
+use yii\widgets\Pjax;
+use kartik\alert\Alert;
+
+$gridColumns = [
+//    ['class' => '\kartik\grid\CheckboxColumn',],
+    ['class' => 'kartik\grid\SerialColumn'],
+    [
+        'class' => 'kartik\grid\DataColumn',
+        'attribute' => 'name',
+        'width' => '18%'
+    ],
+    [
+        'attribute' => 'description',
+        'width' => '20%',
+    ],
+    [
+        'attribute' => 'ruleName',
+        'width' => '20%',
+        'mergeHeader' => true,
+    ],
+    [
+        'attribute' => 'createdAt',
+        'format' => ['date', 'php:Y/m/d H:i:s'],
+        'width' => '15%',
+        'mergeHeader' => true,
+    ],
+    [
+        'class' => 'kartik\grid\ActionColumn',
+        'header' => '操作',
+        'template' => '{permission_assigned}{member}',
+        'buttons' => [
+            'permission_assigned' => function ($url, $model, $key) {
+                return Html::a('权限分配', null, ['data-key' => $key, 'assign-selector' => 'assigned', 'class' => 'btn btn-primary btn-sm', 'data-toggle' => 'modal', 'data-target' => '#assigned-modal'] );
+            },
+            'member' => function($url, $model, $key) {
+                return Html::a('成员管理', Url::toRoute(['/admin/role/assign-member?roleName=' . $key]), ['class' => 'btn btn-primary btn-sm margin']);
+            }
+        ],
+    ],
+];
+$this->registerJsFile('adminlte/libs/role.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+$this->registerJsFile('adminlte/plugins/treeview/bootstrap-treeview.min.js', ['depends' => [\yii\web\JqueryAsset::className()]]);
+?>
+
+<?php if (Yii::$app->session->hasFlash('warning')): ?>
+    <?= Alert::widget([
+        'type' => Alert::TYPE_WARNING,
+        'body' => Yii::$app->session->getFlash('warning'),
+        'showSeparator' => true,
+        'delay' => 3500
+    ]) ?>
+<?php endif; ?>
+
+<?php if (Yii::$app->session->hasFlash('success')): ?>
+    <?= Alert::widget([
+        'type' => Alert::TYPE_SUCCESS,
+        'body' => Yii::$app->session->getFlash('success'),
+        'showSeparator' => true,
+        'delay' => 3500
+    ]) ?>
+<?php endif; ?>
+
+<section class="content">
+    <div class="row">
+        <?= GridView::widget([
+            'dataProvider' => $dataProvider,
+            'filterModel' => $searchModel,
+            'columns' => $gridColumns,
+            'pjax'=>true,
+            'showPageSummary' => true,
+            'export' => false,
+            'bordered' => true,
+            'striped' => false,
+            'condensed' => false,
+            'responsive' => true,
+            'hover' => true,
+            'showPageSummary' => false,
+            'toolbar' => [
+                ['content'=>
+                     Html::button('<i class="glyphicon glyphicon-plus"></i>', ['type'=>'button', 'title'=>'Add Role', 'data-toggle' => 'modal', 'class'=>'btn btn-success', 'value' => Url::to('/admin/role/create'),
+                                                                               'data-target' => '#role-detail-modal', 'id' => 'create'])
+                ],
+                '{toggleData}',
+            ],
+            'panel' => [
+                'type' => GridView::TYPE_ACTIVE
+            ],
+        ]); ?>
+    </div>
+</section>
+
+<!-- create role modal -->
+<?php
+Modal::begin([
+    'id' => 'role-detail-modal',
+    'header' => '<h4 class="modal-title">创建角色</h4>',
+//    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
+]);
+$requestUrl = Url::toRoute('create');
+$js = <<<JS
+$(document).on('click', '#create', function () {
+    $.ajax({
+        url: '{$requestUrl}',
+        type: 'get',
+        success: function(data) {
+            $('#role-detail-modal').find('.modal-body').html(data);
+        },
+        error: function() {
+            console.log('异常');
+        }
+    });
+});
+JS;
+$this->registerJs($js);
+Modal::end();
+?>
+
+<!-- assign member -->
+<?php Pjax::begin(['id' => 'member']); ?>
+<?php
+Modal::begin([
+    'id' => 'member-modal',
+    'header' => '<h4 class="modal-title">分配角色</h4>',
+    'clientOptions' => ['backdrop' => false, 'keyboard' => false],
+//    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
+]);
+$requestUrl = Url::toRoute('assign-member');
+$js = <<<JS
+$(document).on('click', '#member-assign', function () {
+    $.ajax({
+        url: '{$requestUrl}',
+        type: 'get',
+        success: function(data) {
+            $('#member-modal').find('.modal-body').html(data);
+        },
+        error: function() {
+            console.log('异常');
+        }
+    });
+});
+JS;
+$this->registerJs($js, \yii\web\View::POS_READY);
+Modal::end();
+?>
+<?php Pjax::end(); ?>
+
+<!-- assiged permisstion madal -->
+<?php
+Modal::begin([
+    'id' => 'assigned-modal',
+    'header' => '<h4 class="modal-title">权限分配</h4>',
+    'footer' => '<button id="assign-submit" class="btn btn-primary pull-left">保存</button> ',
+]);
+$requestUrl = Url::toRoute('/admin/permission/manager');
+$js = <<<JS
+function adjustParent(treeview, node) {
+    var parent = treeview.treeview('getParent', node);
+    if (parent !== treeview) {
+        var checked = 0;
+        for(var i in parent.nodes) {
+            if (parent.nodes[i].state.checked) {
+                checked++;
+            }
+        }
+        //console.log(checked);
+        if (checked > 0 && !parent.state.checked) {
+            treeview.treeview('checkNode', [parent.nodeId, { silent: true }]);
+        }
+
+        if (checked == 0 && parent.state.checked) {
+            treeview.treeview('uncheckNode', [parent.nodeId, { silent: true }]);
+        }
+
+        adjustParent(treeview, parent);
+    }
+}
+$("[assign-selector='assigned']").on('click', function () {
+    var roleId = $(this).attr('data-key');
+    var inEvent = 0;
+    $.ajax({
+        url: '{$requestUrl}?role='+roleId,
+        type: 'get',
+        //dataType: 'json',
+        success: function(data) {
+            $('.modal-body').html(data);
+            $('.modal-body #treeview').treeview({
+                data: treeData,
+                showCheckbox: true,
+                levels: 2,
+                onNodeChecked: function(event, node) {
+                    inEvent++;
+                    if (node.nodes !== undefined) {
+                        for(var i in node.nodes) {
+                            $(this).treeview('checkNode', node.nodes[i].nodeId);
+                        }
+                    }
+                    inEvent--;
+                    if (inEvent == 0) {
+                        adjustParent($(this), node);
+                    }
+                },
+                onNodeUnchecked: function (event, node) {
+                    inEvent++;
+                    if (node.nodes !== undefined) {
+                       for(var i in node.nodes) {
+                            $(this).treeview('uncheckNode', node.nodes[i].nodeId);
+                       }
+                   }
+                   inEvent--;
+                   if (inEvent == 0) {
+                       adjustParent($(this), node);
+                   }
+                }
+            });
+        },
+        error: function() {
+            console.log('异常');
+        }
+    });
+});
+
+//保存权限
+$("#assign-submit").on('click', function() {
+    var checkedNodes = $('.modal-body #treeview').treeview('getChecked');
+    var role = $('#role_item').val();
+    var nodeIds = [];
+    //console.log(JSON.stringify(checkedNodes));
+    for (var p in checkedNodes) {
+        nodeIds.push(checkedNodes[p].route);
+    }
+
+    console.log(nodeIds);
+
+    $.ajax({
+        url: '/admin/permission/assign',
+        type: 'post',
+        data: {
+            nodeIds: nodeIds,
+            role: role,
+        },
+        dataType: 'json',
+        success: function(data) {
+            if (data.code) {
+                $('#assigned-modal').modal('hide');
+            }
+        },
+        error: function() {
+            console.log('异常');
+        }
+    });
+
+});
+
+JS;
+$this->registerJs($js);
+Modal::end();
+?>

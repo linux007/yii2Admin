@@ -1,0 +1,17 @@
+<?php
+use kartik\tree\TreeView;
+use app\modules\admin\models\Product;
+?>
+
+<?= TreeView::widget([
+    'query' => Product::find()->addOrderBy('root, lft'),
+    'headingOptions' => ['label' => '权限'],
+    'fontAwesome' => false,     // optional
+    'isAdmin' => true,         // optional (toggle to enable admin mode)
+    'displayValue' => 1,        // initial display value
+    'softDelete' => true,       // defaults to true
+    'nodeView' => '@admin/views/product/_form',
+    'cacheSettings' => [
+        'enableCache' => true   // defaults to true
+    ],
+]) ?>

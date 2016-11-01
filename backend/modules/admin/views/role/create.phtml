@@ -1,0 +1,20 @@
+<?php
+use kartik\form\ActiveForm;
+use \yii\helpers\Html;
+use \yii\helpers\Url;
+
+$form = ActiveForm::begin([
+    'action' => Url::to(['/admin/role/create']),
+    'method' => 'post',
+    'id' => 'role-form',
+    'type' => ActiveForm::TYPE_VERTICAL,
+    'enableAjaxValidation' => true,
+    'validationUrl' => Url::toRoute(['validate-form']),
+]);
+?>
+
+<?= $form->field($model, 'name', ['labelOptions' => ['label' => '角色名称']]); ?>
+<?= $form->field($model, 'description', ['labelOptions' => ['label' => '描述']])->textarea(); ?>
+<?= Html::submitButton('提交', ['class'=>'btn btn-primary','name' =>'submit-button']); ?>
+
+<?php  ActiveForm::end(); ?>
