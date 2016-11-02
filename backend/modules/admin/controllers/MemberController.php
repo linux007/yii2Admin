@@ -13,7 +13,6 @@ use app\modules\admin\models\UserForm;
 use common\models\User;
 use kartik\form\ActiveForm;
 use Yii;
-use yii\base\ErrorException;
 use yii\data\ArrayDataProvider;
 use yii\helpers\Html;
 use yii\helpers\Json;
@@ -21,7 +20,7 @@ use app\components\Controller;
 use yii\web\Response;
 
 /**
- * Created by PhpStorm.
+ * 成员管理
  * User: yuyc
  * Date: 2016/10/8
  * Time: 15:06

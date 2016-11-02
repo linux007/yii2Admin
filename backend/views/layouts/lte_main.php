@@ -98,7 +98,14 @@ AppAsset::register($this);
                                     <a href="#" class="btn btn-default btn-flat">Profile</a>
                                 </div>
                                 <div class="pull-right">
-                                    <a href="/site/logout" class="btn btn-default btn-flat">Sign out</a>
+                                    <?= Html::beginForm(['/site/logout'], 'post') ?>
+                                    <?php
+                                        echo Html::submitButton(
+                                            'Logout',
+                                            ['class' => 'btn btn-default btn-flat']
+                                        )
+                                    ?>
+                                    <?= Html::endForm() ?>
                                 </div>
                             </li>
                         </ul>
@@ -140,7 +147,8 @@ AppAsset::register($this);
                 <?php foreach (Yii::$app->params['treeMenu'] as $item): ?>
                     <li class="header"><?= $item['text'] ?></li>
                     <?php foreach ($item['nodes'] as $key => $item): ?>
-                        <li class="<?php if ($key == 0): ?>active <?php endif; ?>treeview">
+                        <?= $key; ?>
+                        <li class="<?php if ($key === 0): ?>active <?php endif; ?>treeview">
                             <a href="javascript:void(0);">
                                 <i class="fa fa-dashboard"></i> <span><?= $item['text'] ?></span> <i class="fa fa-angle-left pull-right"></i>
                             </a>

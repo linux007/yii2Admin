@@ -21,7 +21,7 @@ use yii\web\Response;
 use common\models\User;
 
 /**
- * Created by PhpStorm.
+ * 角色管理
  * User: yuyc
  * Date: 2016/10/8
  * Time: 15:06

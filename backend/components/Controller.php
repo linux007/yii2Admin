@@ -1,9 +1,10 @@
 <?php
 namespace app\components;
 
-use app\modules\admin\models\Product;
+use app\modules\admin\models\Menu;
 use Yii;
-use yii\base\ErrorException;
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
 use yii\web\View;
 
 /**
@@ -15,26 +16,34 @@ use yii\web\View;
 class Controller extends \yii\web\Controller
 {
 
-
-//    public function behaviors()
-//    {
-//        return [
-//            'access' => [
-//                'class' => AccessControl::className(),
-//                'rules' => [
-//                    [
-//                        'actions' => ['login', 'error'],
-//                        'allow' => true,
-//                    ],
-//                    [
-//                        'actions' => ['logout', 'index'],
-//                        'allow' => true,
-//                        'roles' => ['@'],
-//                    ],
-//                ],
-//            ],
-//        ];
-//    }
+    /**
+     * @inheritdoc
+     */
+    public function behaviors()
+    {
+        return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'rules' => [
+                    [
+                        'actions' => ['login', 'error'],
+                        'allow' => true,
+                    ],
+                    [
+                        'actions' => ['logout', 'index'],
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'logout' => ['post'],
+                ],
+            ],
+        ];
+    }
 
     public function beforeAction($action)
     {
@@ -45,7 +54,7 @@ class Controller extends \yii\web\Controller
             }
             $this->view->on(View::EVENT_BEGIN_BODY, function() {
                 $pathInfo = '/' . Yii::$app->request->getPathInfo();
-                $breadcrumbs = Product::find()->select(['name'])->where(['route' => $pathInfo])->asArray()->one();
+                $breadcrumbs = Menu::find()->select(['name'])->where(['route' => $pathInfo])->asArray()->one();
                 $this->view->params['breadcrumbs'][] = [
                     'label' => $breadcrumbs['name'],
                     'url' => $pathInfo
@@ -56,7 +65,6 @@ class Controller extends \yii\web\Controller
         }
 
         return false;
-
     }
 
     /*
@@ -82,13 +90,10 @@ class Controller extends \yii\web\Controller
         $auth = Yii::$app->getAuthManager();
         $assignment = array_keys($auth->getPermissionsByUser($user->id));
 
-        $allNodes = Product::find()->select(['id','name', 'route', 'lft', 'rgt','lvl', 'display'])->asArray()->all();
+        $allNodes = Menu::find()->select(['id','name', 'route', 'lft', 'rgt','lvl', 'display'])->asArray()->all();
         $treeView = $this->toHierarchy($allNodes, $assignment, true);
 
-//        print_r($treeView);
-//        exit;
         Yii::$app->params['treeMenu'] = $treeView;
-//        Yii::$app->params['user'] = $user;
     }
 
     /**

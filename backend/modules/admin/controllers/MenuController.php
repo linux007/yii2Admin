@@ -11,8 +11,21 @@ namespace app\modules\admin\controllers;
 
 use app\components\Controller;
 
-class ProductController extends Controller
+/**
+ * 菜单管理
+ *
+ * 菜单相关管理
+ * @package app\modules\admin\controllers\
+ */
+
+class MenuController extends Controller
 {
+    /**
+     * 菜单管理
+     *
+     * 菜单管理页面
+     * @return string
+     */
     public function actionIndex() {
         return $this->render('index');
     }

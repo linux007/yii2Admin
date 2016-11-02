@@ -9,8 +9,6 @@
 namespace app\modules\admin\controllers;
 
 use app\modules\admin\models\Menu;
-use app\modules\admin\models\Product;
-use kartik\tree\models\Tree;
 use Yii;
 use yii\helpers\Inflector;
 use yii\helpers\Json;
@@ -19,7 +17,9 @@ use app\components\Controller;
 use yii\web\Response;
 
 /**
- * Created by PhpStorm.
+ * 权限管理
+ *
+ * 权限相关管理
  * User: yuyc
  * Date: 2016/10/8
  * Time: 15:06
@@ -28,29 +28,24 @@ class PermissionController extends Controller
 {
 
     /**
-     * 权限列表
+     * 刷新权限
      *
-     * 显示所有权限权限列表
+     * 权限列表更新入库操作
      */
-    public function actionIndex() {
+    public function actionDoFlush() {
         // todo
-
         $parentKey = null;
-        $permissions = $this->actionFlush();
-
-//        print_r($permissions);
-//        exit;
-
-        $productModel = new Product();
+        $MenuModel = new Menu();
+        $permissions = $this->_normalizePermissions();
 
         foreach ($permissions as $m => $mIterm) {
-            $node = Product::findOne(['route' => $m]);
+            $node = Menu::findOne(['route' => $m]);
             if ( empty($node) ) {
-                $node = clone $productModel;
+                $node = clone $MenuModel;
                 $node->activeOrig = $node->active;
                 $node->collapsed = true;
                 $isNewRecord = $node->isNewRecord;
-                $node->load(['Product' => ['name' => $m, 'route' => $m]]);
+                $node->load(['Menu' => ['name' => $m, 'route' => $m]]);
                 $node->makeRoot();
                 $node->save();
             }
@@ -62,12 +57,12 @@ class PermissionController extends Controller
                     $route = $m . '/' . $c;
                 }
 
-                $node = Product::findOne(['route' => $route]);
+                $node = Menu::findOne(['route' => $route]);
                 if ( empty($node) ) {
-                    $node = new Product();
+                    $node = new Menu();
                     $node->activeOrig = $node->active;
-                    $node->load(['Product' => ['name' => $cItem['doc'], 'route' => $route]]);
-                    $parentMod = Product::findOne(['route' => $m]);
+                    $node->load(['Menu' => ['name' => $cItem['doc'], 'route' => $route]]);
+                    $parentMod = Menu::findOne(['route' => $m]);
                     $node->appendTo($parentMod);
                     # 如果不符合rules规则，会保存失败，导致action 循环会报异常
 //                    if ( !$node->save() ) {
@@ -76,51 +71,19 @@ class PermissionController extends Controller
                 }
                 if (isset($cItem['actions']) && $cItem['actions']) {
                     foreach ($cItem['actions'] as $action) {
-                        $node = Product::findOne(['route' => $action['route']]);
+                        $node = Menu::findOne(['route' => $action['route']]);
                         if ( empty($node) ) {
-                            $node = new Product();
+                            $node = new Menu();
                             $node->activeOrig = $node->active;
-                            $node->load(['Product' => ['name' => $action['doc'], 'route' => $action['route']]]);
-                            $parentCtl = Product::findOne(['route' => $route]);
+                            $node->load(['Menu' => ['name' => $action['doc'], 'route' => $action['route']]]);
+                            $parentCtl = Menu::findOne(['route' => $route]);
                             $node->appendTo($parentCtl);
-//                            $node->save();
                         }
                     }
                 }
             }
         }
-
-
-
-        /*
-        foreach ($menu as $m => $mItem) {
-            $menuModel = new Menu();
-            $menuModel->name = $m;
-            $menuModel->route = $m;
-            $menuModel->save();
-            foreach ($mItem as $c => $cItem) {
-                $menuModel = new Menu();
-                $menuModel->name = $cItem['doc'];
-                $menuModel->route = $m . '/' . $c;
-                $menuModel->parent = $m;
-                $menuModel->save();
-
-                foreach ($cItem['actions'] as $action) {
-                    $menuModel = new Menu();
-                    $menuModel->name = $action['doc'];
-                    $menuModel->route = $action['route'];
-                    $menuModel->parent = $m . '/' . $c;
-                    $menuModel->save();
-                }
-            }
-        }
-        */
-
-        $menuModel = new Menu();
-        $menus = $menuModel->find()->select(['name', 'route', 'parent', 'display'])->asArray()->all();
-        $result = $this->buildTree($menus);
-        return Json::encode($result);
-
+        return true;
     }
 
     /**
@@ -136,19 +99,9 @@ class PermissionController extends Controller
         $assignment = array_keys(Yii::$app->getAuthManager()->getPermissionsByRole($roleName));
 
         # nested sets
-        $allNodes = Product::find()->select(['id','name', 'route', 'lft', 'rgt','lvl'])->asArray()->all();
+        $allNodes = Menu::find()->select(['id','name', 'route', 'lft', 'rgt','lvl'])->asArray()->all();
         $treeView = $this->toHierarchy($allNodes, $assignment);
 
-        /**
-        $menuModel = new Menu();
-
-        $roleName = Yii::$app->request->get('role');
-        $assignment = array_keys(Yii::$app->getAuthManager()->getPermissionsByRole($roleName));
-
-        $menus = $menuModel->find()->select(['name', 'route', 'parent'])->asArray()->all();
-        $result = $this->buildTree($menus, null, $assignment);
-//        return Json::htmlEncode($result);
-         **/
         return $this->renderAjax('manager', [
            'treeData' => Json::htmlEncode($treeView),
            'role' => $roleName,
@@ -157,7 +110,6 @@ class PermissionController extends Controller
 
     /**
      * 权限分配
-     *
      * 给角色分配权限
      */
     public function actionAssign() {
@@ -197,11 +149,10 @@ class PermissionController extends Controller
     }
 
     /**
-     * 刷新权限
-     *
-     * 刷新所有权限
+     * 获取权限
+     * 迭代获取所有可用的权限，并按照格式组装数据
      */
-    public function actionFlush() {
+    private function _normalizePermissions() {
         $result = $menu = [];
         $auth = Yii::$app->authManager;
         $this->getRouteRecrusive(Yii::$app, $result);

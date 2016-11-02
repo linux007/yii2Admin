@@ -20,7 +20,8 @@
         "yiisoft/yii2-swiftmailer": "*",
         "kartik-v/yii2-grid": "@dev",
         "kartik-v/yii2-widgets": "*",
-        "kartik-v/yii2-tree-manager": "@dev"
+        "kartik-v/yii2-tree-manager": "@dev",
+        "yiisoft/yii2-httpclient": "^2.0"
     },
     "require-dev": {
         "yiisoft/yii2-codeception": "*",
