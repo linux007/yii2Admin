@@ -4,7 +4,7 @@ use \yii\helpers\Html;
 use \yii\helpers\Url;
 
 $form = ActiveForm::begin([
-    'action' => Url::to(['/admin/member/' . $action]),
+    'action' => Url::to(['/admin/member/ajax-' . $action]),
     'method' => 'post',
     'id' => 'member-'. $action .'-form',
     'type' => ActiveForm::TYPE_HORIZONTAL,
@@ -12,7 +12,7 @@ $form = ActiveForm::begin([
     'formConfig' => ['labelSpan' => 2, 'deviceSize' => ActiveForm::SIZE_SMALL],
     'enableAjaxValidation' => true,
     'enableClientValidation' => true,
-    'validationUrl' => Url::toRoute(['validate-form?scenarios=' . $action]),
+    'validationUrl' => Url::toRoute(['ajax-validate-form?scenarios=' . $action]),
 ]);
 ?>
 

@@ -8,6 +8,7 @@
 
 namespace app\components;
 
+use kartik\alert\Alert;
 use yii\web\ForbiddenHttpException;
 use Yii;
 use yii\web\User;
@@ -16,9 +17,11 @@ use yii\base\ActionFilter;
 
 class AccessControl extends ActionFilter
 {
-    private $_user = 'user';
+    public $user = 'user';
 
     public $allowActions = [];
+
+    public $rules = [];
 
     /**
      * 获取当前用户
@@ -26,20 +29,20 @@ class AccessControl extends ActionFilter
      * @throws \yii\base\InvalidConfigException
      */
     public function getUser() {
-        if ( !$this->_user instanceof User ) {
-            $this->_user = Instance::ensure($this->_user, User::className());
+        if ( !$this->user instanceof User ) {
+            $this->user = Instance::ensure($this->user, User::className());
         }
-        return $this->_user;
+        return $this->user;
     }
 
     public function beforeAction($action)
     {
         $actionId = $action->getUniqueId();
         $user = $this->getUser();
+
         if ($user->can('/'.$actionId)) {
             return true;
         }
-
         $this->denyAccess($user);
     }
 
@@ -48,6 +51,14 @@ class AccessControl extends ActionFilter
         if ($user->getIsGuest()) {
             $user->loginRequired();
         } else {
+            if ( Yii::$app->request->getIsAjax() ) {
+                echo Alert::widget([
+                    'type' => Alert::TYPE_DANGER,
+                    'closeButton' => false,
+                    'body' => Yii::t('yii', 'You are not allowed to perform this action.')
+                ]);
+                return false;
+            }
             throw new ForbiddenHttpException(Yii::t('yii', 'You are not allowed to perform this action.'));
         }
     }
@@ -57,6 +68,14 @@ class AccessControl extends ActionFilter
         $actionId = $action->getUniqueId();
         if ($actionId === Yii::$app->getErrorHandler()->errorAction) {
             return false;
+        }
+
+        if ($this->rules) {
+            foreach ($this->rules as $rule) {
+                if (preg_match('#'.$rule.'#is', $actionId)) {
+                    return false;
+                }
+            }
         }
 
         if ($this->allowActions) {

@@ -27,7 +27,7 @@ class Role extends ActiveRecord {
 
     public function scenarios() {
         $scenarios = parent::scenarios();
-        $scenarios['create'] = ['name', 'type'];  //在该场景下的属性进行验证，其他场景和没有on的都不会验证: 如果没有写参数on，则表示适用于任何场景，如果写了参数on，则表示只适用于on参数后面的场景
+        $scenarios['create'] = ['name', 'type', 'description'];  //在该场景下的属性进行验证，其他场景和没有on的都不会验证: 如果没有写参数on，则表示适用于任何场景，如果写了参数on，则表示只适用于on参数后面的场景
         return $scenarios;
     }
 

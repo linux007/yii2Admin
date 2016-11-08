@@ -53,7 +53,7 @@ class RoleController extends Controller {
      * 创建后台管理用户角色
      * @return string
      */
-    public function actionCreate() {
+    public function actionAjaxCreate() {
 
         $time = time();
         $role = new Role();
@@ -183,6 +183,7 @@ class RoleController extends Controller {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new Role();
         $model->type = Role::TYPE_ROLE;
+        $model->setScenario('create');
         $model->load(Yii::$app->request->post());
         return ActiveForm::validate($model);
     }

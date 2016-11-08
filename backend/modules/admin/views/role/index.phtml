@@ -32,13 +32,13 @@ $gridColumns = [
     [
         'class' => 'kartik\grid\ActionColumn',
         'header' => '操作',
-        'template' => '{permission_assigned}{member}',
+        'template' => '{permission_assigned}&nbsp;{member}',
         'buttons' => [
             'permission_assigned' => function ($url, $model, $key) {
                 return Html::a('权限分配', null, ['data-key' => $key, 'assign-selector' => 'assigned', 'class' => 'btn btn-primary btn-sm', 'data-toggle' => 'modal', 'data-target' => '#assigned-modal'] );
             },
             'member' => function($url, $model, $key) {
-                return Html::a('成员管理', Url::toRoute(['/admin/role/assign-member?roleName=' . $key]), ['class' => 'btn btn-primary btn-sm margin']);
+                return Html::a('成员管理', Url::toRoute(['/admin/role/assign-member?roleName=' . $key]), ['class' => 'btn btn-primary btn-sm']);
             }
         ],
     ],
@@ -82,7 +82,7 @@ $this->registerJsFile('adminlte/plugins/treeview/bootstrap-treeview.min.js', ['d
             'showPageSummary' => false,
             'toolbar' => [
                 ['content'=>
-                     Html::button('<i class="glyphicon glyphicon-plus"></i>', ['type'=>'button', 'title'=>'Add Role', 'data-toggle' => 'modal', 'class'=>'btn btn-success', 'value' => Url::to('/admin/role/create'),
+                     Html::button('<i class="glyphicon glyphicon-plus"></i>', ['type'=>'button', 'title'=>'Add Role', 'data-toggle' => 'modal', 'class'=>'btn btn-success', 'value' => Url::to('/admin/role/ajax-create'),
                                                                                'data-target' => '#role-detail-modal', 'id' => 'create'])
                 ],
                 '{toggleData}',
@@ -101,7 +101,7 @@ Modal::begin([
     'header' => '<h4 class="modal-title">创建角色</h4>',
 //    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
 ]);
-$requestUrl = Url::toRoute('create');
+$requestUrl = Url::toRoute('ajax-create');
 $js = <<<JS
 $(document).on('click', '#create', function () {
     $.ajax({
@@ -156,7 +156,7 @@ Modal::begin([
     'header' => '<h4 class="modal-title">权限分配</h4>',
     'footer' => '<button id="assign-submit" class="btn btn-primary pull-left">保存</button> ',
 ]);
-$requestUrl = Url::toRoute('/admin/permission/manager');
+$requestUrl = Url::toRoute('/admin/permission/ajax-manager');
 $js = <<<JS
 function adjustParent(treeview, node) {
     var parent = treeview.treeview('getParent', node);
@@ -218,6 +218,11 @@ $("[assign-selector='assigned']").on('click', function () {
                 }
             });
         },
+        statusCode: {
+            404: function() {
+                alert('page not found');
+            }
+        },
         error: function() {
             console.log('异常');
         }
@@ -237,7 +242,7 @@ $("#assign-submit").on('click', function() {
     console.log(nodeIds);
 
     $.ajax({
-        url: '/admin/permission/assign',
+        url: '/admin/permission/ajax-assign',
         type: 'post',
         data: {
             nodeIds: nodeIds,

@@ -14,7 +14,6 @@ use common\models\User;
 use kartik\form\ActiveForm;
 use Yii;
 use yii\data\ArrayDataProvider;
-use yii\helpers\Html;
 use yii\helpers\Json;
 use app\components\Controller;
 use yii\web\Response;
@@ -83,7 +82,7 @@ class MemberController extends Controller {
      * 创建后台管理员
      * @return string
      */
-    public function actionCreate() {
+    public function actionAjaxCreate() {
         $user = new UserForm();
         $user->setScenario('create');
         if ( $user->load(Yii::$app->request->post()) ) {
@@ -102,7 +101,7 @@ class MemberController extends Controller {
      * 编辑管理员信息
      * @return string
      */
-    public function actionEdit() {
+    public function actionAjaxEdit() {
         $modelForm = new UserForm();
         $modelForm->setScenario('edit');
         if ( $modelForm->load(Yii::$app->request->post()) ) {
@@ -127,20 +126,28 @@ class MemberController extends Controller {
         }
     }
 
-    // todo 需要改正
-    public function actionStatusChange() {
+    /**
+     * 用户状态修改
+     *
+     * 进行用户状态修改，开启|禁用
+     * todo Ajax、do 前缀的方法默认不会生成菜单
+     * @return string
+     */
+    public function actionAjaxStatusChange() {
         $userForm = new UserForm();
         $request = Yii::$app->request->post();
 
         $user = User::findOne($request['id']);
-        $user->status = $request['status'];
-        $user->update();
+        $status = filter_var($request['status'], FILTER_VALIDATE_BOOLEAN);
+        if ($status) $status = 10;
+        $user->status = $status;
+        $id = $user->update();
         return Json::htmlEncode(['code' => 200, 'message' => 'update success.']);
     }
 
-
-
-    public function actionValidateForm() {
+    # 表单验证，直接允许权限控制，在accessContrl增加正则匹配
+    # todo
+    public function actionAjaxValidateForm() {
         Yii::$app->response->format = Response::FORMAT_JSON;
         $model = new UserForm();
         $model->setScenario(Yii::$app->request->get('scenarios'));

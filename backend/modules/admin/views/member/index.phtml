@@ -33,8 +33,9 @@ $gridColumns = [
                 'name' => 'status',
                 'value' => $model['status'],
                 'pluginEvents' => [
-                    "switchChange.bootstrapSwitch" => "function(event, state) { $.ajax({
-                        url: '".Url::toRoute('status-change')."',
+                    "switchChange.bootstrapSwitch" => "function(event, state) {
+                    $.ajax({
+                        url: '".Url::toRoute('ajax-status-change')."',
                         type: 'post',
                         data: {id: ".$model['id'].", status: state},
                         success: function(data) {
@@ -42,10 +43,12 @@ $gridColumns = [
                         }
                     }) }",
                 ],
+                'containerOptions' => [],
+                'pluginOptions' => ['size' => 'mini'],
             ]);
         },
         'filterType' => GridView::FILTER_SELECT2,
-        'filter' =>[1 => 'active', 0 => 'inactive'],
+        'filter' =>[10 => 'active', 0 => 'inactive'],
         'filterInputOptions'=>['placeholder'=>'Any status'],
         'filterWidgetOptions'=>[
             'pluginOptions'=>['allowClear'=>true],
@@ -117,7 +120,7 @@ Modal::begin([
     'header' => '<h4 class="modal-title">创建管理员</h4>',
 //    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
 ]);
-$requestUrl = Url::toRoute('create');
+$requestUrl = Url::toRoute('ajax-create');
 $js = <<<JS
 $(document).on('click', '#create-member', function () {
     $.ajax({
@@ -126,7 +129,12 @@ $(document).on('click', '#create-member', function () {
         success: function(data) {
             $('#member-modal .modal-body').html(data);
         },
-        error: function() {
+        statusCode: {
+            404: function() {
+                alert('page not found');
+            }
+        },
+        error: function(data) {
             console.log('异常');
         }
     });
@@ -143,7 +151,7 @@ Modal::begin([
     'header' => '<h4 class="modal-title">修改用户信息</h4>',
 //    'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">Close</a>',
 ]);
-$requestUrl = Url::toRoute('edit');
+$requestUrl = Url::toRoute('ajax-edit');
 $js = <<<JS
 $(document).on('click', '#edit_btn', function () {
     $.ajax({

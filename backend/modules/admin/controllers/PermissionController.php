@@ -75,7 +75,12 @@ class PermissionController extends Controller
                         if ( empty($node) ) {
                             $node = new Menu();
                             $node->activeOrig = $node->active;
-                            $node->load(['Menu' => ['name' => $action['doc'], 'route' => $action['route']]]);
+                            $data = ['name' => $action['doc'], 'route' => $action['route']];
+                            $action = array_pop(explode('/', $action['route']));
+                            if (preg_match('#(ajax|do).*#', $action)) {
+                                $data['display'] = 0;
+                            }
+                            $node->load(['Menu' => $data]);
                             $parentCtl = Menu::findOne(['route' => $route]);
                             $node->appendTo($parentCtl);
                         }
@@ -91,7 +96,7 @@ class PermissionController extends Controller
      *
      * 显示所有权限内容
      */
-    public function actionManager() {
+    public function actionAjaxManager() {
         $treeView = [];
 
         # 当前分配的角色
@@ -112,7 +117,7 @@ class PermissionController extends Controller
      * 权限分配
      * 给角色分配权限
      */
-    public function actionAssign() {
+    public function actionAjaxAssign() {
 
         # get params
         $request = Yii::$app->request;

@@ -4,7 +4,6 @@ namespace app\components;
 use app\modules\admin\models\Menu;
 use Yii;
 use yii\filters\VerbFilter;
-use yii\filters\AccessControl;
 use yii\web\View;
 
 /**
@@ -24,17 +23,14 @@ class Controller extends \yii\web\Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'rules' => [
-                    [
-                        'actions' => ['login', 'error'],
-                        'allow' => true,
-                    ],
-                    [
-                        'actions' => ['logout', 'index'],
-                        'allow' => true,
-                        'roles' => ['@'],
-                    ],
+                'allowActions' => [
+                    'site/login',
+                    'site/error',
+                    'site/logout',
                 ],
+                'rules' => [
+                    'validate*'
+                ]
             ],
             'verbs' => [
                 'class' => VerbFilter::className(),
@@ -63,19 +59,8 @@ class Controller extends \yii\web\Controller
 
             return true;
         }
-
         return false;
     }
-
-    /*
-    public function actions() {
-        return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-                'view' => '@common\views\error'
-            ],
-        ];
-    }*/
 
     public function actionError() {
         $exception = \Yii::$app->errorHandler->exception;

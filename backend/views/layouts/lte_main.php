@@ -147,7 +147,9 @@ AppAsset::register($this);
                 <?php foreach (Yii::$app->params['treeMenu'] as $item): ?>
                     <li class="header"><?= $item['text'] ?></li>
                     <?php foreach ($item['nodes'] as $key => $item): ?>
-                        <?= $key; ?>
+                        <?php if (empty($item['nodes'])): ?>
+                            <?php continue; ?>
+                        <?php endif; ?>
                         <li class="<?php if ($key === 0): ?>active <?php endif; ?>treeview">
                             <a href="javascript:void(0);">
                                 <i class="fa fa-dashboard"></i> <span><?= $item['text'] ?></span> <i class="fa fa-angle-left pull-right"></i>
