@@ -136,7 +136,10 @@ $renderContent = function ($part) use ($nodeAddlViews, $params, $form) {
     <div class="kv-detail-heading">
         <?php if (empty($inputOpts['disabled']) || ($isAdmin && $showFormButtons)): ?>
             <div class="pull-right">
-                <button type="reset" class="btn btn-default" title="<?= Yii::t('kvtree', 'Reset') ?>">
+<!--                <button type="reset" class="btn btn-default" title="--><?//= Yii::t('kvtree', 'Reset') ?><!--">-->
+<!--                    <i class="glyphicon glyphicon-repeat"></i>-->
+<!--                </button>-->
+                <button type="button" id="menu-flush" class="btn btn-default" title="flush">
                     <i class="glyphicon glyphicon-repeat"></i>
                 </button>
                 <button type="submit" class="btn btn-primary" title="<?= Yii::t('kvtree', 'Save') ?>">
@@ -320,3 +323,20 @@ echo $renderContent(Module::VIEW_PART_1);
  */
 ?>
 <?= $renderContent(Module::VIEW_PART_5) ?>
+
+<?php
+$doFlushApi = \yii\helpers\Url::toRoute(['/admin/permission/do-flush']);
+$js = <<<JS
+    $(document).on('click', '#menu-flush', function(){
+        $.ajax({
+            url: '{$doFlushApi}',
+            type: 'get',
+            success: function(data) {
+                console.log(data);
+            }
+        });
+//        console.log('{$doFlushApi}');
+    });
+JS;
+$this->registerJs($js);
+?>
