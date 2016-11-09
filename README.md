@@ -1,9 +1,9 @@
-Yii 2 admin
+###Yii 2 admin
 ===============================
 
 A lightweight admin system base on yii2, a simple yet easy to implement Role Based Access Control (rbac)Library
 
-DIRECTORY STRUCTURE
+###DIRECTORY STRUCTURE
 -------------------
 
 ```
@@ -22,13 +22,13 @@ backend
     ....
 ```
 
-REQUIREMENTS
+###REQUIREMENTS
 ===============================
 A version of php is 5.4 or later.
 MySQL database.
 
 
-INSTALL
+###INSTALL
 ===============================
 The way to install this extension is through composer.
 ```
@@ -40,7 +40,7 @@ System account and password:
 admin
 123456
 ```
-SCREENSHOT
+###SCREENSHOT
 ===============================
 
 ![role manager](screenshot/role.png)
