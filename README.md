@@ -25,6 +25,7 @@ backend
 ###REQUIREMENTS
 ===============================
 A version of php is 5.4 or later.
+
 MySQL database.
 
 
@@ -35,6 +36,7 @@ The way to install this extension is through composer.
 php composer.phar install
 ```
 then import [db.sql](doc/db.sql) to mysql, you can modify the database connection config
+
 System account and password:
 ```
 admin
